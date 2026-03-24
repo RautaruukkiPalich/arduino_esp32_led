@@ -5,8 +5,8 @@
 
 // ========== НАСТРОЙКИ ЛЕНТЫ ==========
 #define LED_PIN     5
-#define NUM_LEDS    250
-#define BRIGHTNESS  150
+#define NUM_LEDS    240
+#define BRIGHTNESS  150 //0-255
 #define LED_TYPE    WS2812B
 
 // ========== ПИНЫ КНОПОК ==========
@@ -23,7 +23,6 @@ CRGB leds[NUM_LEDS];
 LEDController* controller;
 
 void setup()
-// write your initialization code here
 {
     Serial.begin(115200);
     delay(100);
@@ -50,7 +49,6 @@ void setup()
 
 void loop()
 {
-    // write your code here
     controller->update();
-    delay(10);
+    delay(75);
 }

@@ -13,6 +13,7 @@ class LEDController
     std::vector<Segment> m_segments; // Вектор сегментов
     int m_allWhiteButtonPin; // Пин кнопки "все белым"
     bool m_allWhiteMode; // Режим "вся лента белым"
+    bool m_isActive; // Включена ли лента
     unsigned long m_lastAllWhiteDebounce; // Антидребезг для белой кнопки
     static constexpr unsigned long DEBOUNCE_DELAY = 200;
 
@@ -24,6 +25,10 @@ class LEDController
 
     // Обработать кнопку "все белым"
     void handleAllWhiteButton();
+
+    void activateAllBlack();
+
+    bool handleSegments();
 
 public:
     LEDController(CRGB* leds, int numLeds, int allWhiteButtonPin);

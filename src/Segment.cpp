@@ -44,6 +44,11 @@ bool Segment::isButtonPressed()
     const unsigned long now = millis();
     if (now - m_lastDebounce < DEBOUNCE_DELAY) { return false; }
 
+    Serial.print("Segment: ");
+    Serial.print(m_id);
+    Serial.print(". ");
+    Serial.println("ButtonPressed");
+
     m_lastDebounce = now;
     return true;
 }

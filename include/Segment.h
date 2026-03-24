@@ -25,7 +25,7 @@ public:
         int end,
         CRGB activeColor,
         int buttonPin,
-        CRGB defaultColor = CRGB::Black
+        CRGB defaultColor = CRGB::White
     );
 
     // Геттеры

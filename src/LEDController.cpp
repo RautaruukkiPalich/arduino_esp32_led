@@ -1,10 +1,11 @@
 #include "LEDController.h"
 
-LEDController::LEDController(CRGB* leds, int numLeds, const int allWhiteButtonPin)
+LEDController::LEDController(CRGB* leds, const int numLeds, const int allWhiteButtonPin)
     : m_leds(leds),
       m_numLeds(numLeds),
       m_allWhiteButtonPin(allWhiteButtonPin),
       m_allWhiteMode(false),
+      m_isActive(false),
       m_lastAllWhiteDebounce(0)
 {
 }
@@ -40,23 +41,24 @@ void LEDController::handleAllWhiteButton()
     if (digitalRead(m_allWhiteButtonPin) != HIGH) { return; }
 
     const unsigned long now = millis();
-    if (now - m_lastAllWhiteDebounce > DEBOUNCE_DELAY)
-    {
-        m_lastAllWhiteDebounce = now;
-        activateAllWhite();
-    }
-}
+    if (now - m_lastAllWhiteDebounce < DEBOUNCE_DELAY) { return; }
+    m_lastAllWhiteDebounce = now;
 
+    if (m_allWhiteMode)
+    {
+        activateAllBlack();
+        return;
+    }
+    activateAllWhite();
+}
 
 void LEDController::addSegment(const Segment& segment) { m_segments.push_back(segment); }
 
 // Включить всю ленту белым
 void LEDController::activateAllWhite()
 {
+    m_isActive = true;
     m_allWhiteMode = true;
-
-    // Вся лента белая
-    // fill_solid(m_leds, NUM_LEDS, CRGB::White);
 
     // Деактивируем все сегменты
     for (auto& seg : m_segments)
@@ -68,6 +70,53 @@ void LEDController::activateAllWhite()
     FastLED.show();
 }
 
+
+void LEDController::activateAllBlack()
+{
+    for (auto& seg : m_segments)
+    {
+        seg.deactivate();
+    }
+    fill_solid(m_leds, m_numLeds, CRGB::Black);
+
+    m_isActive = false;
+    m_allWhiteMode = false;
+
+    FastLED.show();
+}
+
+bool LEDController::handleSegments()
+{
+    for (auto& seg : m_segments)
+    {
+        if (!seg.isButtonPressed()) { continue; }
+
+        seg.toggle();
+
+        if (seg.isActive())
+        {
+            for (auto& s : m_segments)
+            {
+                if (s.getId() != seg.getId())
+                {
+                    s.deactivate();
+                }
+                s.draw(m_leds);
+            }
+        }
+        else
+        {
+            seg.draw(m_leds);
+        }
+
+        m_allWhiteMode = !seg.isActive();
+
+        return true;
+    }
+
+    return false;
+}
+
 // Обновить состояние (вызывать в loop)
 void LEDController::update()
 {
@@ -75,38 +124,15 @@ void LEDController::update()
     handleAllWhiteButton();
 
     // Обрабатываем кнопки сегментов
-    bool needUpdate = false;
+    if (!m_isActive) { return; }
 
-    for (auto& seg : m_segments)
-    {
-        if (!seg.isButtonPressed()) { continue; }
-
-        seg.toggle();
-
-        // Если включили сегмент - выключаем белый режим
-        if (seg.isActive() && m_allWhiteMode)
-        {
-            m_allWhiteMode = false;
-            // Перерисовываем все сегменты
-            for (auto& s : m_segments)
-            {
-                s.draw(m_leds);
-            }
-        }
-        else
-        {
-            // Перерисовываем только этот сегмент
-            seg.draw(m_leds);
-        }
-
-        needUpdate = true;
-    }
+    const bool needUpdate = handleSegments();
 
     // Проверяем, нужно ли отключить белый режим
-    updateWhiteMode();
+    // updateWhiteMode();
 
     // Если были изменения, обновляем ленту
-    if (needUpdate || m_allWhiteMode)
+    if (needUpdate)
     {
         FastLED.show();
     }
