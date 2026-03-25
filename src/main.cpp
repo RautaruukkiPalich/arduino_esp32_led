@@ -5,12 +5,17 @@
 
 // ========== НАСТРОЙКИ ЛЕНТЫ ==========
 #define LED_PIN     5
-#define NUM_LEDS    240
+#define NUM_LEDS    256
 #define BRIGHTNESS  150 //0-255
 #define LED_TYPE    WS2812B
 
 // ========== ПИНЫ КНОПОК ==========
 #define BTN_ALL     13
+
+// Ведущий, не управляется
+#define BTN_SEG_VED    34
+
+// Игроки 1-7
 #define BTN_SEG1    12
 #define BTN_SEG2    14
 #define BTN_SEG3    27
@@ -32,13 +37,14 @@ void setup()
 
     controller = new LEDController(leds, NUM_LEDS, BTN_ALL);
 
-    controller->addSegment(Segment(1, 0, 30, CRGB::Red, BTN_SEG1));
-    controller->addSegment(Segment(2, 35, 65, CRGB::Green, BTN_SEG2));
-    controller->addSegment(Segment(3, 70, 100, CRGB::Blue, BTN_SEG3));
-    controller->addSegment(Segment(4, 105, 135, CRGB::Yellow, BTN_SEG4));
-    controller->addSegment(Segment(5, 140, 170, CRGB::Purple, BTN_SEG5));
-    controller->addSegment(Segment(6, 175, 205, CRGB::Orange, BTN_SEG6));
-    controller->addSegment(Segment(7, 210, 240, CRGB::Cyan, BTN_SEG7));
+    controller->addSegment(Segment(0, 8, 42, CRGB::White, BTN_SEG_VED));
+    controller->addSegment(Segment(1, 43, 76, CRGB::Cyan, BTN_SEG1));
+    controller->addSegment(Segment(2, 78, 109, CRGB::Cyan, BTN_SEG2));
+    controller->addSegment(Segment(3, 110, 131, CRGB::Cyan, BTN_SEG3));
+    controller->addSegment(Segment(4, 132, 165, CRGB::Cyan, BTN_SEG4));
+    controller->addSegment(Segment(5, 166, 189, CRGB::Cyan, BTN_SEG5));
+    controller->addSegment(Segment(6, 190, 221, CRGB::Cyan, BTN_SEG6));
+    controller->addSegment(Segment(7, 223, 254, CRGB::Cyan, BTN_SEG7));
 
     controller->init();
 
