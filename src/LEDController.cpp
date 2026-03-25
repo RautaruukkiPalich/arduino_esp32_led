@@ -44,6 +44,8 @@ void LEDController::handleAllWhiteButton()
     if (now - m_lastAllWhiteDebounce < DEBOUNCE_DELAY) { return; }
     m_lastAllWhiteDebounce = now;
 
+    Serial.println("Main. ButtonPressed");
+
     if (m_allWhiteMode)
     {
         activateAllBlack();
@@ -67,6 +69,8 @@ void LEDController::activateAllWhite()
         seg.draw(m_leds);
     }
 
+    Serial.println("Mode: all white");
+
     FastLED.show();
 }
 
@@ -81,6 +85,8 @@ void LEDController::activateAllBlack()
 
     m_isActive = false;
     m_allWhiteMode = false;
+
+    Serial.println("Mode: off");
 
     FastLED.show();
 }
@@ -134,6 +140,7 @@ void LEDController::update()
     // Если были изменения, обновляем ленту
     if (needUpdate)
     {
+        Serial.println("need update: show");
         FastLED.show();
     }
 }
