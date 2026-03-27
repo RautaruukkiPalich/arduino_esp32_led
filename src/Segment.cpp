@@ -6,7 +6,7 @@ Segment::Segment(
     const int start,
     const int end,
     const CRGB activeColor,
-    const int buttonPin,
+    IButton* button,
     const CRGB defaultColor
 ) :
     m_id(id),
@@ -14,9 +14,8 @@ Segment::Segment(
     m_end(end),
     m_activeColor(activeColor),
     m_defaultColor(defaultColor),
-    m_buttonPin(buttonPin),
-    m_isActive(false),
-    m_lastDebounce(0)
+    m_button(button),
+    m_isActive(false)
 {
 }
 
@@ -36,19 +35,7 @@ void Segment::draw(CRGB* leds) const
     }
 }
 
-// Проверить нажатие кнопки
-bool Segment::isButtonPressed()
+bool Segment::isButtonPressed() const
 {
-    if (digitalRead(m_buttonPin) != HIGH) { return false; }
-
-    const unsigned long now = millis();
-    if (now - m_lastDebounce < DEBOUNCE_DELAY) { return false; }
-
-    Serial.print("Segment: ");
-    Serial.print(m_id);
-    Serial.print(". ");
-    Serial.println("ButtonPressed");
-
-    m_lastDebounce = now;
-    return true;
+    return m_button && m_button->isPressed();
 }

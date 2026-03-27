@@ -1,94 +1,62 @@
 #include "LEDController.h"
 
-LEDController::LEDController(CRGB* leds, const int numLeds, const int allWhiteButtonPin)
+LEDController::LEDController(CRGB* leds, const int numLeds, IButton* allWhiteButton)
     : m_leds(leds),
       m_numLeds(numLeds),
-      m_allWhiteButtonPin(allWhiteButtonPin),
+      m_allWhiteButton(allWhiteButton),
       m_allWhiteMode(false),
-      m_isActive(false),
-      m_lastAllWhiteDebounce(0)
+      m_isActive(false)
 {
-}
-
-bool LEDController::hasActiveSegments() const
-{
-    return std::any_of(
-        m_segments.begin(),
-        m_segments.end(),
-        [](const Segment& seg)
-        {
-            return seg.isActive();
-        });
-}
-
-// Обновить режим белого (если есть активные сегменты - отключаем белый)
-void LEDController::updateWhiteMode()
-{
-    if (m_allWhiteMode && hasActiveSegments())
-    {
-        m_allWhiteMode = false;
-        // Перерисовываем все сегменты
-        for (auto& seg : m_segments)
-        {
-            seg.draw(m_leds);
-        }
-    }
 }
 
 // Обработать кнопку "все белым"
-void LEDController::handleAllWhiteButton()
+bool LEDController::handleAllWhiteButton()
 {
-    if (digitalRead(m_allWhiteButtonPin) != HIGH) { return; }
+    if (!(m_allWhiteButton && m_allWhiteButton->isPressed())) { return false; }
 
-    const unsigned long now = millis();
-    if (now - m_lastAllWhiteDebounce < DEBOUNCE_DELAY) { return; }
-    m_lastAllWhiteDebounce = now;
+    m_allWhiteMode ? activateAllBlack() : activateAllWhite();
 
-    Serial.println("Main. ButtonPressed");
-
-    if (m_allWhiteMode)
-    {
-        activateAllBlack();
-        return;
-    }
-    activateAllWhite();
+    return true;
 }
-
-void LEDController::addSegment(const Segment& segment) { m_segments.push_back(segment); }
 
 // Включить всю ленту белым
 void LEDController::activateAllWhite()
 {
     m_isActive = true;
     m_allWhiteMode = true;
-
-    // Деактивируем все сегменты
-    for (auto& seg : m_segments)
-    {
-        seg.deactivate();
-        seg.draw(m_leds);
-    }
-
-    Serial.println("Mode: all white");
-
-    FastLED.show();
+    deactivateSegmentsAndRedraw(true);
 }
 
-
 void LEDController::activateAllBlack()
+{
+    m_isActive = false;
+    m_allWhiteMode = false;
+    deactivateSegmentsAndRedraw(false);
+    fill_solid(m_leds, m_numLeds, CRGB::Black);
+}
+
+void LEDController::deactivateSegmentsAndRedraw(const bool redraw)
 {
     for (auto& seg : m_segments)
     {
         seg.deactivate();
+        if (redraw)
+        {
+            seg.draw(m_leds);
+        }
     }
-    fill_solid(m_leds, m_numLeds, CRGB::Black);
+}
 
-    m_isActive = false;
-    m_allWhiteMode = false;
-
-    Serial.println("Mode: off");
-
-    FastLED.show();
+void LEDController::activateSegmentExclusive(const Segment& seg)
+{
+    for (auto& s : m_segments)
+    {
+        if (s.getId() != seg.getId())
+        {
+            s.deactivate();
+        }
+        s.draw(m_leds);
+    }
 }
 
 bool LEDController::handleSegments()
@@ -98,22 +66,7 @@ bool LEDController::handleSegments()
         if (!seg.isButtonPressed()) { continue; }
 
         seg.toggle();
-
-        if (seg.isActive())
-        {
-            for (auto& s : m_segments)
-            {
-                if (s.getId() != seg.getId())
-                {
-                    s.deactivate();
-                }
-                s.draw(m_leds);
-            }
-        }
-        else
-        {
-            seg.draw(m_leds);
-        }
+        seg.isActive() ? activateSegmentExclusive(seg) : activateAllWhite();
 
         m_allWhiteMode = !seg.isActive();
 
@@ -126,35 +79,17 @@ bool LEDController::handleSegments()
 // Обновить состояние (вызывать в loop)
 void LEDController::update()
 {
-    // Обрабатываем кнопку "все белым"
-    handleAllWhiteButton();
-
-    // Обрабатываем кнопки сегментов
-    if (!m_isActive) { return; }
-
-    const bool needUpdate = handleSegments();
-
-    // Проверяем, нужно ли отключить белый режим
-    // updateWhiteMode();
-
-    // Если были изменения, обновляем ленту
-    if (needUpdate)
+    if (handleAllWhiteButton() || (m_isActive && handleSegments()))
     {
-        Serial.println("need update: show");
         FastLED.show();
     }
 }
 
+void LEDController::addSegment(const Segment& segment) { m_segments.push_back(segment); }
+
 // Инициализация: настройка пинов и начальное состояние
 void LEDController::init() const
 {
-    // Настройка пинов для кнопок
-    pinMode(m_allWhiteButtonPin, INPUT_PULLDOWN);
-    for (const auto& seg : m_segments)
-    {
-        pinMode(seg.getButtonPin(), INPUT_PULLDOWN);
-    }
-
     // Начальное состояние - всё выключено
     fill_solid(m_leds, m_numLeds, CRGB::Black);
     FastLED.show();
@@ -186,7 +121,7 @@ void LEDController::printInfo() const
         Serial.print(" | Active: ");
         Serial.print(seg.isActive() ? "YES" : "NO");
         Serial.print(" | Color: ");
-        CRGB c = seg.getActiveColor();
+        const CRGB c = seg.getActiveColor();
         Serial.print(c.r);
         Serial.print(",");
         Serial.print(c.g);
@@ -194,7 +129,10 @@ void LEDController::printInfo() const
         Serial.println(c.b);
     }
 
-    Serial.print("All White Button: GPIO");
-    Serial.println(m_allWhiteButtonPin);
+    if (m_allWhiteButton)
+    {
+        Serial.print("All White Button: GPIO");
+        Serial.println(m_allWhiteButton->getPin());
+    }
     Serial.println("=================================");
 }

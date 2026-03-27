@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
+#include "IButton.h"
+
 
 // ========== КЛАСС СЕГМЕНТА ==========
 class Segment
@@ -12,10 +14,8 @@ class Segment
     const int m_end; // Конечный LED
     const CRGB m_activeColor; // Цвет в активном состоянии
     const CRGB m_defaultColor; // Цвет в неактивном состоянии
-    const int m_buttonPin; // Пин кнопки
+    IButton* m_button; // Кнопка
     bool m_isActive; // Активен ли сегмент
-    unsigned long m_lastDebounce; // Для антидребезга
-    static constexpr unsigned long DEBOUNCE_DELAY = 200;
 
 public:
     // Конструктор
@@ -24,18 +24,19 @@ public:
         int start,
         int end,
         CRGB activeColor,
-        int buttonPin,
+        IButton* button = nullptr,
         CRGB defaultColor = CRGB::White
     );
+    ~Segment() = default;
 
     // Геттеры
     int getId() const { return m_id; }
     int getStart() const { return m_start; }
     int getEnd() const { return m_end; }
     int getLength() const { return m_end - m_start; }
+    int getButtonPin() const {return m_button?m_button->getPin() : -1;}
     CRGB getActiveColor() const { return m_activeColor; }
     CRGB getDefaultColor() const { return m_defaultColor; }
-    int getButtonPin() const { return m_buttonPin; }
     bool isActive() const { return m_isActive; }
 
     // Управление состоянием
@@ -48,5 +49,5 @@ public:
     // Отрисовать сегмент на ленте
     void draw(CRGB* leds) const;
     // Проверить, нажата ли кнопка этого сегмента (с антидребезгом)
-    bool isButtonPressed();
+    bool isButtonPressed() const;
 };

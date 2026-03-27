@@ -11,31 +11,26 @@ class LEDController
     CRGB* m_leds; // Указатель на массив светодиодов
     int m_numLeds; // Количество светодиодов в ленте
     std::vector<Segment> m_segments; // Вектор сегментов
-    int m_allWhiteButtonPin; // Пин кнопки "все белым"
+    IButton* m_allWhiteButton; // Пин кнопки "все белым"
     bool m_allWhiteMode; // Режим "вся лента белым"
     bool m_isActive; // Включена ли лента
-    unsigned long m_lastAllWhiteDebounce; // Антидребезг для белой кнопки
-    static constexpr unsigned long DEBOUNCE_DELAY = 200;
-
-    // Проверить, есть ли активные сегменты
-    bool hasActiveSegments() const;
-
-    // Обновить режим белого (если есть активные сегменты - отключаем белый)
-    void updateWhiteMode();
 
     // Обработать кнопку "все белым"
-    void handleAllWhiteButton();
-
-    void activateAllBlack();
-
+    bool handleAllWhiteButton();
+    // Обработать кнопки и состояние сегментов
     bool handleSegments();
 
-public:
-    LEDController(CRGB* leds, int numLeds, int allWhiteButtonPin);
-
-    void addSegment(const Segment& segment);
-    // Включить всю ленту белым
     void activateAllWhite();
+    void activateAllBlack();
+    void activateSegmentExclusive(const Segment& seg);
+
+    void deactivateSegmentsAndRedraw(bool redraw);
+
+public:
+    LEDController(CRGB* leds, int numLeds, IButton* allWhiteButton);
+
+    // Добавить сегмент (вызывать в setup)
+    void addSegment(const Segment& segment);
     // Обновить состояние (вызывать в loop)
     void update();
     // Инициализация: настройка пинов и начальное состояние
