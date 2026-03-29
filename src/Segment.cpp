@@ -6,36 +6,27 @@ Segment::Segment(
     const int start,
     const int end,
     const CRGB activeColor,
-    IButton* button,
-    const CRGB defaultColor
+    const CRGB inactiveColor,
+    const CRGB defaultColor,
+    const Mode mode
 ) :
     m_id(id),
     m_start(start),
     m_end(end),
     m_activeColor(activeColor),
+    m_inactiveColor(inactiveColor),
     m_defaultColor(defaultColor),
-    m_button(button),
-    m_isActive(false)
+    m_mode(mode)
 {
 }
 
 // Получить текущий цвет
 CRGB Segment::getCurrentColor() const
 {
-    return m_isActive ? m_activeColor : m_defaultColor;
-}
-
-// Отрисовать сегмент
-void Segment::draw(CRGB* leds) const
-{
-    const CRGB color = getCurrentColor();
-    for (int i = m_start; i < m_end; i++)
+    switch (m_mode)
     {
-        leds[i] = color;
+        case ACTIVE_MODE: return m_activeColor;
+        case INACTIVE_MODE: return m_inactiveColor;
+        default: return m_defaultColor;
     }
-}
-
-bool Segment::isButtonPressed() const
-{
-    return m_button && m_button->isPressed();
 }

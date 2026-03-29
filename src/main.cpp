@@ -2,17 +2,15 @@
 #include <FastLED.h>
 
 #include "AnalogButton.h"
+#include "ButtonController.h"
 #include "Segment.h"
-#include "LEDController.h"
+#include "LEDService.h"
 
 // ========== НАСТРОЙКИ ЛЕНТЫ ==========
 #define LED_PIN     5
 #define NUM_LEDS    256
 #define BRIGHTNESS  150 //0-255
 #define LED_TYPE    WS2812B
-
-CRGB leds[NUM_LEDS];
-LEDController* controller;
 
 // ========== ПИНЫ КНОПОК ==========
 #define BTN_ALL     13
@@ -25,6 +23,10 @@ LEDController* controller;
 #define BTN_SEG5    25
 #define BTN_SEG6    33
 #define BTN_SEG7    32
+
+CRGB leds[NUM_LEDS];
+LEDService* ledService;
+ButtonController* buttonController;
 
 AnalogButton btnAll(BTN_ALL);
 AnalogButton btn1(BTN_SEG1);
@@ -43,26 +45,35 @@ void setup()
     FastLED.addLeds<LED_TYPE, LED_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(BRIGHTNESS);
 
-    controller = new LEDController(leds, NUM_LEDS, &btnAll);
+    ledService = new LEDService(leds, NUM_LEDS);
+    ledService->addSegment(Segment(0, 8, 42, CRGB::White, CRGB::White));
+    ledService->addSegment(Segment(1, 43, 76, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(2, 78, 109, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(3, 110, 131, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(4, 132, 165, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(5, 166, 189, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(6, 190, 221, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(7, 223, 254, CRGB::White, CRGB::Yellow));
 
-    controller->addSegment(Segment(0, 8, 42, CRGB::White));
-    controller->addSegment(Segment(1, 43, 76, CRGB::Cyan, &btn1));
-    controller->addSegment(Segment(2, 78, 109, CRGB::Cyan, &btn2));
-    controller->addSegment(Segment(3, 110, 131, CRGB::Cyan, &btn3));
-    controller->addSegment(Segment(4, 132, 165, CRGB::Cyan, &btn4));
-    controller->addSegment(Segment(5, 166, 189, CRGB::Cyan, &btn5));
-    controller->addSegment(Segment(6, 190, 221, CRGB::Cyan, &btn6));
-    controller->addSegment(Segment(7, 223, 254, CRGB::Cyan, &btn7));
+    ledService->printInfo();
 
-    controller->init();
+    buttonController = new ButtonController();
+    buttonController->addButton(&btnAll, std::bind(&LEDService::handleMainButton, ledService));
+    buttonController->addButton(&btn1, std::bind(&LEDService::handleSegmentButton, ledService, 1));
+    buttonController->addButton(&btn2, std::bind(&LEDService::handleSegmentButton, ledService, 2));
+    buttonController->addButton(&btn3, std::bind(&LEDService::handleSegmentButton, ledService, 3));
+    buttonController->addButton(&btn4, std::bind(&LEDService::handleSegmentButton, ledService, 4));
+    buttonController->addButton(&btn5, std::bind(&LEDService::handleSegmentButton, ledService, 5));
+    buttonController->addButton(&btn6, std::bind(&LEDService::handleSegmentButton, ledService, 6));
+    buttonController->addButton(&btn7, std::bind(&LEDService::handleSegmentButton, ledService, 7));
 
-    controller->printInfo();
+    buttonController->printInfo();
 
     Serial.println("Ready! Press buttons to control LEDs");
 }
 
 void loop()
 {
-    controller->update();
+    buttonController->update();
     delay(75);
 }

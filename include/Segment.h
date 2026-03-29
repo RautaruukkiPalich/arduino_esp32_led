@@ -3,8 +3,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-#include "IButton.h"
-
+enum Mode{DEFAULT_MODE, ACTIVE_MODE, INACTIVE_MODE};
 
 // ========== КЛАСС СЕГМЕНТА ==========
 class Segment
@@ -13,9 +12,9 @@ class Segment
     const int m_start; // Начальный LED
     const int m_end; // Конечный LED
     const CRGB m_activeColor; // Цвет в активном состоянии
+    const CRGB m_inactiveColor; // Цвет в активном состоянии
     const CRGB m_defaultColor; // Цвет в неактивном состоянии
-    IButton* m_button; // Кнопка
-    bool m_isActive; // Активен ли сегмент
+    Mode m_mode; // Активен ли сегмент
 
 public:
     // Конструктор
@@ -23,9 +22,10 @@ public:
         int id,
         int start,
         int end,
-        CRGB activeColor,
-        IButton* button = nullptr,
-        CRGB defaultColor = CRGB::White
+        CRGB activeColor = CRGB::White,
+        CRGB inactiveColor = CRGB::Yellow,
+        CRGB defaultColor = CRGB::White,
+        Mode mode = DEFAULT_MODE
     );
     ~Segment() = default;
 
@@ -34,20 +34,14 @@ public:
     int getStart() const { return m_start; }
     int getEnd() const { return m_end; }
     int getLength() const { return m_end - m_start; }
-    int getButtonPin() const {return m_button?m_button->getPin() : -1;}
     CRGB getActiveColor() const { return m_activeColor; }
+    CRGB getInactiveColor() const { return m_inactiveColor; }
     CRGB getDefaultColor() const { return m_defaultColor; }
-    bool isActive() const { return m_isActive; }
+    Mode getMode() const { return m_mode; }
 
     // Управление состоянием
-    void activate() { m_isActive = true; }
-    void deactivate() { m_isActive = false; }
-    void toggle() { m_isActive = !m_isActive; }
+    void setMode(const Mode mode) { m_mode = mode; }
 
     // Получить текущий цвет (активный или дефолтный)
     CRGB getCurrentColor() const;
-    // Отрисовать сегмент на ленте
-    void draw(CRGB* leds) const;
-    // Проверить, нажата ли кнопка этого сегмента (с антидребезгом)
-    bool isButtonPressed() const;
 };
