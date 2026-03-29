@@ -1,4 +1,3 @@
-#pragma once
 #include "ButtonController.h"
 #include <memory>
 
@@ -36,13 +35,4 @@ void ButtonController::printInfo() const
     Serial.println("Button Controller Configuration:");
     Serial.print("Total buttons: ");
     Serial.println(m_buttons.size());
-    Serial.println("Buttons:");
-
-    for (const ButtonMapping& ctrl : m_buttons)
-    {
-        Serial.print("Button: [");
-        Serial.print(reinterpret_cast<const char*>(ctrl.m_Button));
-        Serial.println("]");
-    }
-
 }

@@ -1,4 +1,3 @@
-#pragma once
 #include "LEDService.h"
 
 LEDService::LEDService(

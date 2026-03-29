@@ -22,9 +22,9 @@ public:
         int id,
         int start,
         int end,
-        CRGB activeColor = CRGB::White,
-        CRGB inactiveColor = CRGB::Yellow,
-        CRGB defaultColor = CRGB::White,
+        CRGB activeColor = CRGB(250, 244, 132),
+        CRGB inactiveColor = CRGB::Orange1,
+        CRGB defaultColor = CRGB(250, 244, 132),
         Mode mode = DEFAULT_MODE
     );
     ~Segment() = default;

@@ -9,7 +9,7 @@
 // ========== НАСТРОЙКИ ЛЕНТЫ ==========
 #define LED_PIN     5
 #define NUM_LEDS    256
-#define BRIGHTNESS  150 //0-255
+#define BRIGHTNESS  200 //0-255
 #define LED_TYPE    WS2812B
 
 // ========== ПИНЫ КНОПОК ==========
@@ -46,14 +46,15 @@ void setup()
     FastLED.setBrightness(BRIGHTNESS);
 
     ledService = new LEDService(leds, NUM_LEDS);
-    ledService->addSegment(Segment(0, 8, 42, CRGB::White, CRGB::White));
-    ledService->addSegment(Segment(1, 43, 76, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(2, 78, 109, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(3, 110, 131, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(4, 132, 165, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(5, 166, 189, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(6, 190, 221, CRGB::White, CRGB::Yellow));
-    ledService->addSegment(Segment(7, 223, 254, CRGB::White, CRGB::Yellow));
+    ledService->addSegment(Segment(0, 8, 42,
+        CRGB::White, CRGB::White, CRGB::White));
+    ledService->addSegment(Segment(1, 43, 76));
+    ledService->addSegment(Segment(2, 78, 109));
+    ledService->addSegment(Segment(3, 110, 131));
+    ledService->addSegment(Segment(4, 132, 165));
+    ledService->addSegment(Segment(5, 166, 189));
+    ledService->addSegment(Segment(6, 190, 221));
+    ledService->addSegment(Segment(7, 223, 254));
 
     ledService->printInfo();
 
